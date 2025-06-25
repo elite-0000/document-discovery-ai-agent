@@ -8,9 +8,6 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Upload, File, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
-import { DocumentParser, DocumentChunker } from '@/lib/document-parser'
-import { EmbeddingService } from '@/lib/embedding-service'
-import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 interface UploadedFile {
@@ -59,65 +56,27 @@ export function DocumentUpload() {
       setIsProcessing(true)
       updateFileStatus(uploadedFile.id, 'processing', 10)
 
-      // Step 1: Parse document
-      const parsedContent = await DocumentParser.parseDocument(uploadedFile.file)
+      // Create FormData and send to API route
+      const formData = new FormData()
+      formData.append('file', uploadedFile.file)
+
       updateFileStatus(uploadedFile.id, 'processing', 30)
 
-      // Step 2: Create document record
-      const { data: document, error: docError } = await supabase
-        .from('documents')
-        .insert({
-          filename: uploadedFile.file.name,
-          file_type: uploadedFile.file.type,
-          file_size: uploadedFile.file.size,
-          status: 'processing',
-          metadata: parsedContent.metadata
-        })
-        .select()
-        .single()
+      const response = await fetch('/api/process-document', {
+        method: 'POST',
+        body: formData
+      })
 
-      if (docError) throw docError
-      updateFileStatus(uploadedFile.id, 'processing', 50)
-
-      // Step 3: Chunk the document
-      const chunks = DocumentChunker.chunkDocument(parsedContent.text)
       updateFileStatus(uploadedFile.id, 'processing', 70)
 
-      // Step 4: Generate embeddings and store chunks
-      const chunkData = []
-      for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i]
-        const embedding = await EmbeddingService.generateEmbedding(chunk)
-        const metadata = DocumentChunker.enhanceChunkMetadata(chunk, i, document)
-        
-        chunkData.push({
-          document_id: document.id,
-          content: chunk,
-          chunk_index: i,
-          embedding,
-          metadata
-        })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Processing failed')
       }
 
-      const { error: chunkError } = await supabase
-        .from('document_chunks')
-        .insert(chunkData)
-
-      if (chunkError) throw chunkError
-      updateFileStatus(uploadedFile.id, 'processing', 90)
-
-      // Step 5: Update document status
-      await supabase
-        .from('documents')
-        .update({
-          status: 'completed',
-          processed_date: new Date().toISOString(),
-          chunk_count: chunks.length
-        })
-        .eq('id', document.id)
-
-      updateFileStatus(uploadedFile.id, 'completed', 100, undefined, chunks.length)
-      toast.success(`${uploadedFile.file.name} processed successfully with ${chunks.length} chunks`)
+      updateFileStatus(uploadedFile.id, 'completed', 100, undefined, result.chunks)
+      toast.success(`${uploadedFile.file.name} processed successfully with ${result.chunks} chunks`)
 
     } catch (error) {
       console.error('File processing error:', error)
