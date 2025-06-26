@@ -29,6 +29,8 @@ export default function DocumentUpload() {
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
+    console.log("uploading file", formData);
+
     try {
       const res = await fetch("/api/ingest", {
         method: "POST",
