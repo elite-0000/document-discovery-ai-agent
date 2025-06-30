@@ -2,13 +2,13 @@ import { OpenAIEmbeddings } from '@langchain/openai';
 import { ChatOpenAI } from '@langchain/openai';
 import { createClient } from '@supabase/supabase-js';
 import { SupabaseVectorStore } from '@langchain/community/vectorstores/supabase';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { z } from 'zod';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
-import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
-import { Document } from 'langchain/document';
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { Document } from '@langchain/core/documents';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 // Initialize clients
