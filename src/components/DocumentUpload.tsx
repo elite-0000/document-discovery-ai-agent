@@ -2,18 +2,16 @@
 import { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, X } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 export default function DocumentUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<{suggestion?: string, details?: string} | null>(null);
-  const [success, setSuccess] = useState(false);
   const [uploadResult, setUploadResult] = useState<{fileName: string, chunks: number} | null>(null);
 
   // Dialog states
@@ -24,7 +22,6 @@ export default function DocumentUpload() {
     e.preventDefault();
     setError(null);
     setErrorDetails(null);
-    setSuccess(false);
     setUploadResult(null);
     const file = e.dataTransfer.files[0];
     if (!file) return;
@@ -34,7 +31,6 @@ export default function DocumentUpload() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     setErrorDetails(null);
-    setSuccess(false);
     setUploadResult(null);
     const file = e.target.files?.[0];
     if (!file) return;
@@ -45,7 +41,6 @@ export default function DocumentUpload() {
     setUploading(true);
     setError(null);
     setErrorDetails(null);
-    setSuccess(false);
 
     // Client-side validation
     const allowedTypes = [
@@ -91,7 +86,6 @@ export default function DocumentUpload() {
         throw new Error(data.error || `Upload failed with status ${res.status}`);
       }
 
-      setSuccess(true);
       console.log('Upload successful:', data);
 
       // Store upload result for display

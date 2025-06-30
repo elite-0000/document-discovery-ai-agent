@@ -20,6 +20,10 @@ export default function DocumentLibrary() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Dialog state for document details
+  const [selectedDoc, setSelectedDoc] = useState<DocMeta | null>(null);
+  const [showDocDialog, setShowDocDialog] = useState(false);
+
   useEffect(() => {
     fetchDocs();
   }, []);
@@ -166,6 +170,49 @@ export default function DocumentLibrary() {
           )}
         </CardContent>
       </Card>
+
+      {/* Document Details Dialog */}
+      <Dialog open={showDocDialog} onOpenChange={setShowDocDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <DialogTitle>Document Details</DialogTitle>
+            </div>
+            <DialogDescription>
+              Information about the selected document
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedDoc && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium">Filename:</span> {selectedDoc.filename}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Type:</span>{" "}
+                  <Badge variant={getFileTypeColor(selectedDoc.type)}>
+                    {selectedDoc.type.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Uploaded:</span> {formatDate(selectedDoc.uploaded_at)}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Document ID:</span> {selectedDoc.id}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setShowDocDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
